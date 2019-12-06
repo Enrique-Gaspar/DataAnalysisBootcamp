@@ -1,0 +1,230 @@
+Sub VBA_challenge()
+
+Dim WS_Count As Integer
+Dim QQ As Integer
+
+'Set WS_Count equal to the number of worksheets in the active workbook.
+WS_Count = ActiveWorkbook.Worksheets.Count
+
+'Set timmy as a variable to count the number of times the loop
+'has been running and determine when to stop
+Dim timmy As Integer
+timmy = 0
+    
+    '_______________________________________________________________
+    'Begin the loop for QQ
+    '_______________________________________________________________
+    For QQ = 1 To WS_Count
+
+        'Set an initial variable for holding the ticker name
+        Dim Ticker_Name As String
+
+        'Keep track of the location for each ticker in the summary table
+        Dim Summary_Table_Row As Integer
+        Summary_Table_Row = 2
+
+        'Set an initial variable for holding the total at opening per ticker
+        Dim Ticker_Total_Open As Double
+        Ticker_Total_Open = 0
+
+        'Set an initial variable for holding the total at closing per ticker
+        Dim Ticker_Total_Close As Double
+        Ticker_Total_Close = 0
+
+        'Set an initial variable for the yearly change per ticker
+        Dim Yearly_Change As Double
+        Yearly_Change = 0
+              
+        'Set an initial variable for the total stock volume
+        Dim Total_Stock_Volume As Double
+        Total_Stock_Volume = 0
+              
+        'Determine the Last Row
+        LastRow = Cells(Rows.Count, 1).End(xlUp).Row
+              
+        'Add the word ticker to the First Column Header
+        Cells(1, 9).Value = "Ticker"
+              
+        'Add the word "yearly change" to the First Column Header
+        Cells(1, 10).Value = "Yearly Change"
+              
+        'Add the word "percent change" "to the First Column Header
+        Cells(1, 11).Value = "Percent Change"
+              
+        'Add the word "Total Stock Volume" "to the First Column Header
+        Cells(1, 12).Value = "Total Stock Volume"
+          
+            '_______________________________________________________________
+            'Loop through all tickers
+            '_______________________________________________________________
+            For i = 2 To LastRow
+
+                'Check if we are still within the same ticker, if it is not...
+                    If Cells(i + 1, 1).Value <> Cells(i, 1).Value Then
+
+                        'Set the ticker name
+                        Ticker_Name = Cells(i, 1).Value
+
+                        'Add to the Ticker Total at opening
+                        Ticker_Total_Open = Ticker_Total_Open + Cells(i, 3).Value
+
+                        'Add to the Ticker Total at closing
+                        Ticker_Total_Close = Ticker_Total_Close + Cells(i, 6).Value
+
+                        'Add to the the total stock volume
+                        Total_Stock_Volume = Total_Stock_Volume + Cells(i, 7).Value
+
+                        'Set an initial variable for the difference between close and opening
+                        Dim Difference As Double
+                        Difference = Ticker_Total_Close - Ticker_Total_Open
+
+                        'Print the ticker in the Summary Table
+                        Range("I" & Summary_Table_Row).Value = Ticker_Name
+
+                        'Print the Yearly Change to the Summary Table
+                        Range("J" & Summary_Table_Row).Value = Difference
+
+                            'Formatting cells
+                                If Range("J" & Summary_Table_Row) <= 0 Then
+                                    Range("J" & Summary_Table_Row).Interior.ColorIndex = 3
+                                Else
+                                    Range("J" & Summary_Table_Row).Interior.ColorIndex = 4
+                                End If
+
+                        'Set an initial variable for the percent of change
+                        Dim Percent_Change As Long
+
+                                If Ticker_Total_Open = 0 Then
+                                    Percent_Change = 0
+                                Else
+                                    Percent_Change = CLng(CLng(Difference) / CLng(Ticker_Total_Open))
+                                End If
+
+
+                        'Print the Percent of Change into the Summary Table
+                        Range("K" & Summary_Table_Row).Value = Percent_Change
+                        Range("K" & Summary_Table_Row).NumberFormat = "0.00%"
+
+                        'Print the total stock volume in the Summary Table
+                        Range("L" & Summary_Table_Row).Value = Total_Stock_Volume
+
+                        'Add one to the summary table row
+                        Summary_Table_Row = Summary_Table_Row + 1
+
+                        'Reset the Ticker Total at opening
+                        Ticker_Total_Open = 0
+
+                        'Reset the Ticker total at closing
+                        Ticker_Total_Close = 0
+
+                        'Reset the yearly change
+                        Difference = 0
+
+                        'Reset the total stock volume
+                        Total_Stock_Volume = 0
+
+
+                    'If the cell immediately following a row is the same type
+                    Else
+
+                        'Add to the ticker total at opening
+                        Ticker_Total_Open = Ticker_Total_Open + Cells(i, 3).Value
+
+                        'Add to the ticker total at closing
+                        Ticker_Total_Close = Ticker_Total_Close + Cells(i, 6).Value
+
+                        'Add to the total stock volume
+                        Total_Stock_Volume = Total_Stock_Volume + Cells(i, 7).Value
+
+                    End If
+
+            Next i
+
+            '_______________________________________________________________
+            'End of Loop for tickers
+            '_______________________________________________________________
+
+        'Add the "titles" to Column_0
+        Cells(2, 15).Value = "Greatest % Increase"
+        Cells(3, 15).Value = "Greatest % Decrease"
+        Cells(4, 15).Value = "Greatest Total Volume"
+
+        'Add the word ticker to the Column_P Header
+        Cells(1, 16).Value = "Ticker"
+
+        'Add the word "value" to the Column_Q Header
+        Cells(1, 17).Value = "Value"
+
+        Dim Min As Double
+        Dim Max As Double
+        Dim rw As Integer
+
+        Min = 10000
+        Max = -10000
+        rw = 2
+
+            Do While Cells(rw, 11) <> ""
+                    If Min > Cells(rw, 11) Then
+                    Min = Cells(rw, 11)
+                    End If
+
+                    If Max < Cells(rw, 11) Then
+                    Max = Cells(rw, 11)
+                    End If
+
+                rw = rw + 1
+            Loop
+
+        'Print the greatest increase in Q2
+        Range("Q2").Value = Max
+        Range("Q2").NumberFormat = "0.00%"
+
+        'Print the greatest decrease in Q3
+        Range("Q3").Value = Min
+        Range("Q3").NumberFormat = "0.00%"
+
+        Dim MaxVolume As Double
+        Dim rww As Integer
+
+        MaxVolume = -10000
+        rww = 2
+
+            Do While Cells(rww, 12) <> ""
+                    If MaxVolume < Cells(rww, 12) Then
+                    MaxVolume = Cells(rww, 12)
+                    End If
+
+                rww = rww + 1
+            Loop
+
+        'Print the greatest Total volume in Q4
+        Range("Q4").Value = MaxVolume
+
+        'Print the tickers related to the values you just found
+        Range("P2") = "=index(I:I,match(Q2,K:K,0))"
+        Range("P3") = "=index(I:I,match(Q3,K:K,0))"
+        Range("P4") = "=index(I:I,match(Q4,L:L,0))"
+
+        'Autofit to display data
+        Columns("A:Q").AutoFit
+
+        'Count the number of loops adding one
+        timmy = timmy +1
+
+            'To determine if the loop should continue or should stop
+            If timmy <> WS_Count Then
+                ActiveSheet.Next.Activate
+            Else
+                Exit For
+            End If
+
+    Next QQ
+
+    '_______________________________________________________________
+    'End of the loop for QQ
+    '_______________________________________________________________
+
+'To double check that everything was done.
+MsgBox("All is finally done!")
+
+End Sub
